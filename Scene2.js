@@ -159,6 +159,10 @@ class Scene2 extends Phaser.Scene {
     }
 
     hurtPlayer(player, enemy) {
+        this.score = 0;
+        var scoreFormated = this.zeroPad(this.score, 6);
+        this.scoreLabel.text = "SCORE " + scoreFormated;
+        
         this.resetShipPosition(enemy);
 
         if(this.player.alpha < 1) {
@@ -179,7 +183,9 @@ class Scene2 extends Phaser.Scene {
 
     pickPowerUp(player, powerUp) {
         powerUp.disableBody(true, true);
-        this.score += 20;
+        this.score += 50;
+        var scoreFormated = this.zeroPad(this.score, 6);
+        this.scoreLabel.text = "SCORE " + scoreFormated;
         this.pickupSound.play();
     }
 
@@ -199,7 +205,9 @@ class Scene2 extends Phaser.Scene {
         if(this.cursorKeys.left.isDown) {
             this.player.setVelocityX(-gameSettings.playerSpeed);
         } else if(this.cursorKeys.right.isDown) {
-            this.player.setVelocityX(gameSettings.playerSpeed);
+            this.player.setVelocityX(250);
+        } else {
+            this.player.setVelocityX(0);
         }
 
         if(this.cursorKeys.up.isDown) {
