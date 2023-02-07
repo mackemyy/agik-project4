@@ -40,6 +40,49 @@ class Scene1 extends Phaser.Scene {
         this.load.audio("audio_explosion", ["assets/sounds/explosion.ogg", "assets/sounds/explosion.mp3"]);
         this.load.audio("music", ["assets/sounds/sci-fi_platformer12.ogg", "assets/sounds/sci-fi_platformer12.mp3"]);
 
+        
+        for (var i = 0; i < 500; i++) {
+            this.load.image('star'+i, 'assets/images/star.png');
+        }
+        
+        var progressBar = this.add.graphics();
+        var progressBox = this.add.graphics();
+        
+        progressBox.fillStyle(0xbc6c25, 0.8);
+        progressBox.fillRect(65, 100, 130, 30);
+
+        var width = this.cameras.main.width;
+        var height = this.cameras.main.height;
+        var loadingText = this.make.text({
+            x: width / 2,
+            y: height / 2 - 50,
+            text: 'Loading Game...',
+            style: {
+                font: '10px monospace',
+                fill: '#ffffff'
+            }
+        });
+        
+        loadingText.setOrigin(0.5, 0.5);
+
+        this.load.on('progress', function (value) {
+            console.log(value);
+            progressBar.clear();
+            progressBar.fillStyle(0xf6bd60, 1);
+            progressBar.fillRect(75, 110, 110 * value, 10);
+        });  
+
+        this.load.on('fileprogress', function (file) {
+            console.log(file.src);
+        });
+
+        this.load.on('complete', function () {
+            console.log('complete');
+            progressBar.destroy();
+            progressBox.destroy();
+            loadingText.destroy();
+        });
+        
     }
 
     create () {
@@ -108,6 +151,5 @@ class Scene1 extends Phaser.Scene {
             frameRate: 20,
             repeat: -1,
         });
-
     }
 }
