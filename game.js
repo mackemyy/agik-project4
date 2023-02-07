@@ -7,7 +7,7 @@ var gameSettings = {
 var config = {
     width: 256,
     height: 272,
-    backgroundColor: 0x000000,
+    backgroundColor: 0x0d1b2a,
     scene: [Scene1, Scene2],
     pixelArt: true,
     physics: {
