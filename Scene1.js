@@ -40,7 +40,6 @@ class Scene1 extends Phaser.Scene {
         this.load.audio("audio_explosion", ["assets/sounds/explosion.ogg", "assets/sounds/explosion.mp3"]);
         this.load.audio("music", ["assets/sounds/sci-fi_platformer12.ogg", "assets/sounds/sci-fi_platformer12.mp3"]);
 
-        
         for (var i = 0; i < 500; i++) {
             this.load.image('star'+i, 'assets/images/star.png');
         }
@@ -64,7 +63,19 @@ class Scene1 extends Phaser.Scene {
         });
         
         loadingText.setOrigin(0.5, 0.5);
+        let startButton;
 
+        startButton = this.add.text(config.width/2, config.height/2, 'Start game', { font: '10px monospace'})
+        .setOrigin(0.5)
+        .setPadding(10)
+        .setStyle({ backgroundColor: '#111' })
+        .setInteractive({ useHandCursor: true })
+        .on('pointerdown', () => this.scene.start("playGame"))
+        .on('pointerover', () => startButton.setStyle({ fill: '#F39C12' }))
+        .on('pointerout', () => startButton.setStyle({ fill: '#FFF' }));
+
+        startButton.visible = false;
+        
         this.load.on('progress', function (value) {
             console.log(value);
             progressBar.clear();
@@ -81,13 +92,14 @@ class Scene1 extends Phaser.Scene {
             progressBar.destroy();
             progressBox.destroy();
             loadingText.destroy();
+            startButton.visible = true;
+            
         });
-        
     }
 
     create () {
-        this.add.text(20, 20, "Loading game...");
-        this.scene.start("playGame");
+        // this.add.text(20, 20, "Loading game...");
+        
 
         this.anims.create({
             key: "ship1_anim",
@@ -152,4 +164,12 @@ class Scene1 extends Phaser.Scene {
             repeat: -1,
         });
     }
+
+    startGame() {
+        startButton.destroy();
+        console.log("Clicked");
+        this.scene.start("playGame");
+    }
+
+    
 }
