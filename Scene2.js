@@ -25,8 +25,6 @@ class Scene2 extends Phaser.Scene {
         this.ship2.setInteractive();
         this.ship3.setInteractive();
 
-        this.input.on('gameobjectdown', this.destroyShip, this);
-
         this.physics.world.setBoundsCollision();
 
         this.powerUps = this.physics.add.group();
@@ -54,6 +52,7 @@ class Scene2 extends Phaser.Scene {
         this.player.setCollideWorldBounds(true);
 
         this.spacebar = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+        this.enterbar = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER);
         this.projectiles = this.add.group();
 
         this.physics.add.collider(this.projectiles, this.powerUps, function(projectile, powerUp){
@@ -95,6 +94,29 @@ class Scene2 extends Phaser.Scene {
             delay: 0,
         }
         this.music.play(musicConfig);
+
+        var gameOver = true;
+        var gameOverText;
+        
+        this.gameOverText = this.add.text(config.width/2- 55, config.height/2 - 45, 'GAME OVER', {
+            fontSize: '20px', fill: '#fff', stroke: '#fff', align: 'center',
+            strokeThickness: 1,
+        }); 
+
+        this.gameOverText.visible = false;
+
+        var restartButton;
+
+        this.restartButton = this.add.text(config.width/2, config.height/2, 'Restart Game', { font: '10px monospace'})
+        .setOrigin(0.5)
+        .setPadding(10)
+        .setStyle({ backgroundColor: '#111' })
+        .setInteractive({ useHandCursor: true })
+        .on('pointerdown', () => this.resetPlayer())
+        .on('pointerover', () => this.restartButton.setStyle({ fill: '#F39C12' }))
+        .on('pointerout', () => this.restartButton.setStyle({ fill: '#FFF' }));
+
+        this.restartButton.visible = false;
     }
 
     update() {
@@ -136,6 +158,8 @@ class Scene2 extends Phaser.Scene {
             },
             callbackScope: this
         });
+        this.gameOverText.visible = false;
+        this.restartButton.visible = false;
     }
 
     zeroPad(number, size){
@@ -158,27 +182,23 @@ class Scene2 extends Phaser.Scene {
         this.explosionSound.play();
     }
 
+    showButton(player) {
+        player.disableBody(true, true);
+    }
+
     hurtPlayer(player, enemy) {
+        
         this.score = 0;
         var scoreFormated = this.zeroPad(this.score, 6);
         this.scoreLabel.text = "SCORE " + scoreFormated;
-        
-        this.resetShipPosition(enemy);
-
-        if(this.player.alpha < 1) {
-            return;
-        }
-
+        this.showButton(player);
         var explosion = new Explosion(this, player.x, player.y);
-        player.disableBody(true, true);
-        this.score = 0;
-        this.time.addEvent({
-            delay: 1000,
-            callback: this.resetPlayer,
-            callbackScope: this,
-            loop: false,
-        });
+        this.gameOver = true;
+        this.gameOverText.visible = true;
+        this.restartButton.visible = true;
+        
         this.explosionSound.play();
+        
     }
 
     pickPowerUp(player, powerUp) {
@@ -221,10 +241,5 @@ class Scene2 extends Phaser.Scene {
         ship.y = 0;
         var randomX = Phaser.Math.Between(0, config.width);
         ship.x = randomX;
-    }
-
-    destroyShip(pointer, gameObject) {
-        gameObject.setTexture("explosion");
-        gameObject.play("explode");
     }
 }
