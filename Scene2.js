@@ -8,7 +8,7 @@ class Scene2 extends Phaser.Scene {
         this.background.setOrigin(0,0);
 
         this.ship1 = this.add.sprite(config.width/2 - 50, config.height/2, "ship");
-        this.ship2 = this.add.sprite(config.width/2, config.height/2, "ship2");
+        this.ship2 = this.add.sprite(config.width/2 - 40, config.height/2, "ship2");
         this.ship3 = this.add.sprite(config.width/2 + 50, config.height/2, "ship3");
 
         this.ship1.setScale(1.5)
@@ -70,12 +70,10 @@ class Scene2 extends Phaser.Scene {
         graphics.lineTo(config.width, 20);
         graphics.lineTo(0, 20);
         graphics.lineTo(0, 0);
-
         graphics.closePath();
         graphics.fillPath();
 
         this.score = 0;
-
         var scoreFormated = this.zeroPad(this.score, 6);
         this.scoreLabel = this.add.bitmapText(10, 5, "pixelFont", "SCORE " + scoreFormated  , 16);
 
@@ -83,6 +81,7 @@ class Scene2 extends Phaser.Scene {
         this.explosionSound = this.sound.add("audio_explosion");
         this.pickupSound = this.sound.add("audio_pickup");
         this.music = this.sound.add("music");
+        this.gameoverSound = this.sound.add("gameover");
 
         var musicConfig = {
             mute: false,
@@ -94,35 +93,36 @@ class Scene2 extends Phaser.Scene {
             delay: 0,
         }
         this.music.play(musicConfig);
-
-        var gameOver = true;
-        var gameOverText;
         
         this.gameOverText = this.add.text(config.width/2- 55, config.height/2 - 45, 'GAME OVER', {
             fontSize: '20px', fill: '#fff', stroke: '#fff', align: 'center',
             strokeThickness: 1,
         }); 
-
         this.gameOverText.visible = false;
-
-        var restartButton;
 
         this.restartButton = this.add.text(config.width/2, config.height/2, 'Restart Game', { font: '10px monospace'})
         .setOrigin(0.5)
         .setPadding(10)
         .setStyle({ backgroundColor: '#111' })
         .setInteractive({ useHandCursor: true })
-        .on('pointerdown', () => this.resetPlayer())
+        .on('pointerdown', () => this.resetGame())
         .on('pointerover', () => this.restartButton.setStyle({ fill: '#F39C12' }))
         .on('pointerout', () => this.restartButton.setStyle({ fill: '#FFF' }));
-
         this.restartButton.visible = false;
+
+        this.livesCounter = 3;
+        this.lives = this.physics.add.group();
+        for (var i = 0; i < 3; i++) {
+            this.heart = this.lives.create(300-100 + 20 * i, 10, "heart");
+        }
+        this.noLivesText = this.add.text(180, 5, 'NO LIVES LEFT!',{ font: '9px monospace'});
+        this.noLivesText.visible = false;
     }
 
     update() {
-        this.moveShip(this.ship1, 1);
-        this.moveShip(this.ship2, 2);
-        this.moveShip(this.ship3, 3);
+        this.moveShip(this.ship1, 2);
+        this.moveShip(this.ship2, 3);
+        this.moveShip(this.ship3, 4);
         
         this.background.tilePositionY -= 0.5;
 
@@ -138,6 +138,63 @@ class Scene2 extends Phaser.Scene {
             var beam = this.projectiles.getChildren()[i];
             beam.update();
         }
+    }
+
+    zeroPad(number, size){
+        var stringNumber = String(number);
+        while(stringNumber.length < (size || 2)){
+          stringNumber = "0" + stringNumber;
+        }
+        return stringNumber;
+    }
+  
+    hitEnemy(projectile, enemy) {
+        var explosion = new Explosion(this, enemy.x, enemy.y);
+        projectile.destroy();
+        this.resetShipPosition(enemy);
+        this.score += 15;
+
+        var scoreFormated = this.zeroPad(this.score, 6);
+        this.scoreLabel.text = "SCORE " + scoreFormated;
+        this.explosionSound.play();
+    }
+
+    hurtPlayer(player, enemy) {
+        player.disableBody(true, true);
+        var explosion = new Explosion(this, player.x, player.y);
+        this.explosionSound.play();
+
+        var life;
+        life = this.lives.getFirstAlive();
+
+        if(life) {
+            life.destroy(); 
+            this.resetPlayer();
+        }
+        this.livesCounter--;
+        if(this.livesCounter === 0) {
+            this.gameoverSound.play();
+            this.noLivesText.visible = true;
+            this.playAgain();
+        }
+    }
+
+    playAgain() {
+        this.player.disableBody(true, true);
+        this.gameOver = true;
+        this.gameOverText.visible = true;
+        this.restartButton.visible = true;
+    }
+
+    restoreLife() {
+        for (var i = 0; i < 3; i++) {
+            this.heart = this.lives.create(300-100 + 20 * i, 10, "heart");
+        }
+
+        this.score = 0;
+        var scoreFormated = this.zeroPad(this.score, 6);
+        this.scoreLabel.text = "SCORE " + scoreFormated;
+        this.livesCounter = 3;
     }
 
     resetPlayer() {
@@ -162,43 +219,10 @@ class Scene2 extends Phaser.Scene {
         this.restartButton.visible = false;
     }
 
-    zeroPad(number, size){
-        var stringNumber = String(number);
-        while(stringNumber.length < (size || 2)){
-          stringNumber = "0" + stringNumber;
-        }
-        return stringNumber;
-    }
-  
-
-    hitEnemy(projectile, enemy) {
-        var explosion = new Explosion(this, enemy.x, enemy.y);
-        projectile.destroy();
-        this.resetShipPosition(enemy);
-        this.score += 15;
-
-        var scoreFormated = this.zeroPad(this.score, 6);
-        this.scoreLabel.text = "SCORE " + scoreFormated;
-        this.explosionSound.play();
-    }
-
-    showButton(player) {
-        player.disableBody(true, true);
-    }
-
-    hurtPlayer(player, enemy) {
-        
-        this.score = 0;
-        var scoreFormated = this.zeroPad(this.score, 6);
-        this.scoreLabel.text = "SCORE " + scoreFormated;
-        this.showButton(player);
-        var explosion = new Explosion(this, player.x, player.y);
-        this.gameOver = true;
-        this.gameOverText.visible = true;
-        this.restartButton.visible = true;
-        
-        this.explosionSound.play();
-        
+    resetGame() {
+        this.resetPlayer();
+        this.restoreLife();
+        this.noLivesText.visible = false;
     }
 
     pickPowerUp(player, powerUp) {
@@ -234,6 +258,9 @@ class Scene2 extends Phaser.Scene {
             this.player.setVelocityY(-gameSettings.playerSpeed);
         } else if(this.cursorKeys.down.isDown) {
             this.player.setVelocityY(gameSettings.playerSpeed);
+        }
+        else {
+            this.player.setVelocityY(0);
         }
     }
 
