@@ -39,8 +39,12 @@ class Scene1 extends Phaser.Scene {
         this.load.audio("audio_pickup", ["assets/sounds/pickup.ogg", "assets/sounds/pickup.mp3"]);
         this.load.audio("audio_explosion", ["assets/sounds/explosion.ogg", "assets/sounds/explosion.mp3"]);
         this.load.audio("music", ["assets/sounds/sci-fi_platformer12.ogg", "assets/sounds/sci-fi_platformer12.mp3"]);
+        this.load.audio("gameover", ["assets/sounds/game-over.mp3"]);
 
-        for (var i = 0; i < 500; i++) {
+        this.load.image("heart", "assets/images/heart.png");
+        this.load.image("shipp", "assets/images/ship.png");
+        
+        for (var i = 0; i < 250; i++) {
             this.load.image('star'+i, 'assets/images/star.png');
         }
         
